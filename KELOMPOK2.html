@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Interaktif - Kelompok 5</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .quiz-container { background: white; width: 800px; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; border-bottom: 2px solid #2e7d32; padding-bottom: 10px; margin-bottom: 20px; color: #2e7d32; font-weight: bold; }
+        .question-box { font-size: 1.2em; color: #333; margin-bottom: 25px; line-height: 1.5; }
+        .options { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .option-btn { background: #fff; border: 2px solid #ddd; padding: 15px; border-radius: 8px; cursor: pointer; font-size: 1em; text-align: left; transition: 0.3s; }
+        .option-btn:hover { border-color: #2e7d32; background: #e8f5e9; }
+        .option-btn.correct { background: #4caf50; color: white; border-color: #4caf50; }
+        .option-btn.wrong { background: #f44336; color: white; border-color: #f44336; }
+        .controls { margin-top: 25px; text-align: right; }
+        .next-btn { background: #2e7d32; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 1em; display: none; }
+        .next-btn:hover { background: #1b5e20; }
+        .result { text-align: center; font-size: 1.5em; display: none; color: #2e7d32; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container" id="quiz-box">
+    <div class="header">
+        <span id="question-number">SOAL 1 DARI 5</span>
+        <span id="score-display">Skor: 0</span>
+    </div>
+    
+    <div class="question-box" id="question-text">
+        <!-- Pertanyaan akan muncul di sini -->
+    </div>
+
+    <div class="options" id="options-container">
+        <!-- Pilihan jawaban akan muncul di sini -->
+    </div>
+
+    <div class="controls">
+        <button class="next-btn" id="next-btn" onclick="nextQuestion()">Pertanyaan Selanjutnya ➔</button>
+    </div>
+</div>
+
+<div class="quiz-container result" id="result-box">
+    <h2>Kuis Selesai!</h2>
+    <p>Skor Akhir Kelompok/Peserta: <span id="final-score">0</span> / 50</p>
+    <button class="next-btn" style="display:inline-block; margin-top:20px;" onclick="location.reload()">Main Lagi</button>
+</div>
+
+<script>
+    const questions = [
+        {
+            question: "Jika diibaratkan membangun sebuah rumah, tahap manakah yang berperan sebagai 'denah' atau kerangka dasar penempatan ruangan sebelum rumah itu dibangun secara nyata?",
+            options: ["Rapid Prototype", "High-Fidelity UI", "Wireframe", "Flowchart"],
+            answer: 2
+        },
+        {
+            question: "Di antara jenis perancangan berikut, manakah yang pembuatannya paling cepat karena hanya menggunakan elemen dasar seperti kotak, garis, dan teks?",
+            options: ["High-Fidelity Wireframe", "Low-Fidelity Wireframe", "Rapid Prototype", "User Journey"],
+            answer: 1
+        },
+        {
+            question: "Saat merancang aplikasi pemesanan makanan, tim menghubungkan halaman Login, daftar produk, hingga Checkout agar rancangannya bisa diklik dan dicoba alurnya. Bentuk simulasi interaktif ini disebut...",
+            options: ["Wireframe Statis", "Rapid Prototype", "Desain Visual", "Mockup"],
+            answer: 1
+        },
+        {
+            question: "Mengapa menemukan kesalahan navigasi pada tahap Wireframe dan Prototype dinilai sangat penting?",
+            options: ["Agar desain terlihat lebih penuh warna", "Karena perubahan jauh lebih mudah dan murah dibanding mengubah aplikasi yang sudah diprogram", "Agar aplikasi langsung bisa di-download di PlayStore", "Untuk menambah beban kerja programmer"],
+            answer: 1
+        },
+        {
+            question: "Dalam alur pembuatan perancangan aplikasi, langkah apa yang mutlak harus dilakukan pertama kali *sebelum* kita mulai menggambar Wireframe?",
+            options: ["Membuat Prototype", "Coding Aplikasi", "Memilih Kombinasi Warna", "Identifikasi Kebutuhan & Fitur"],
+            answer: 3
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    const questionText = document.getElementById("question-text");
+    const optionsContainer = document.getElementById("options-container");
+    const nextBtn = document.getElementById("next-btn");
+    const questionNumber = document.getElementById("question-number");
+    const scoreDisplay = document.getElementById("score-display");
+    const quizBox = document.getElementById("quiz-box");
+    const resultBox = document.getElementById("result-box");
+    const finalScore = document.getElementById("final-score");
+
+    function loadQuestion() {
+        nextBtn.style.display = "none";
+        optionsContainer.innerHTML = "";
+        
+        let q = questions[currentQuestionIndex];
+        questionText.innerHTML = q.question;
+        questionNumber.innerText = `SOAL ${currentQuestionIndex + 1} DARI ${questions.length}`;
+
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement("button");
+            btn.innerText = opt;
+            btn.classList.add("option-btn");
+            btn.onclick = () => checkAnswer(index, btn);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selectedIndex, btnElement) {
+        let q = questions[currentQuestionIndex];
+        const allButtons = optionsContainer.querySelectorAll(".option-btn");
+        
+        // Disable semua tombol setelah dijawab
+        allButtons.forEach(btn => btn.disabled = true);
+
+        if (selectedIndex === q.answer) {
+            btnElement.classList.add("correct");
+            score += 10;
+            scoreDisplay.innerText = `Skor: ${score}`;
+        } else {
+            btnElement.classList.add("wrong");
+            allButtons[q.answer].classList.add("correct"); // Tunjukkan jawaban benar
+        }
+
+        nextBtn.style.display = "inline-block";
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+            loadQuestion();
+        } else {
+            quizBox.style.display = "none";
+            resultBox.style.display = "block";
+            finalScore.innerText = score;
+        }
+    }
+
+    // Mulai Kuis
+    loadQuestion();
+</script>
+
+</body>
+</html>
